@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earth-Moon System Evolution</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #4a9eff;
+            margin-bottom: 10px;
+        }
+
+        #canvas {
+            border: 1px solid #333;
+            background: #000;
+            margin: 20px 0;
+        }
+
+        .controls {
+            background: #111;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .control-group {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #4a9eff;
+        }
+
+        #timeSlider {
+            width: 400px;
+            height: 8px;
+            background: #333;
+            outline: none;
+            border-radius: 5px;
+        }
+
+        #timeSlider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4a9eff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #timeSlider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #4a9eff;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .info-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .info-title {
+            color: #4a9eff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #4a9eff;
+        }
+
+        .phase-indicator {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .normal-phase {
+            background: #1a3d1a;
+            color: #66ff66;
+        }
+
+        .red-giant-phase {
+            background: #3d1a1a;
+            color: #ff6666;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .tidal-lock-zone {
+            background: #3d3d1a;
+            color: #ffff66;
+        }
+
+        .view-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #4a9eff;
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .view-toggle:hover {
+            background: #66b3ff;
+            transform: translateY(-2px);
+        }
+
+        .mode-indicator {
+            background: #1a1a1a;
+            border: 2px solid #4a9eff;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+            color: #4a9eff;
+        }
+
+        .tidal-controls {
+            display: none;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .tidal-controls.active {
+            display: block;
+        }
+
+        .evolution-controls.inactive {
+            display: none;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 10px 0;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .play-pause-btn {
+            background: #4a9eff;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .play-pause-btn:hover {
+            background: #66b3ff;
+        }
+
+        .speed-slider {
+            width: 200px;
+            height: 6px;
+            background: #333;
+            outline: none;
+            border-radius: 3px;
+        }
+
+        .force-legend {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .force-legend.active {
+            display: grid;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-arrow {
+            width: 20px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        .legend-arrow.red {
+            background: #ff4444;
+        }
+
+        .legend-arrow.blue {
+            background: #44aaff;
+        }
+
+        .multiplier-controls {
+            display: none;
+            background: #2a1a1a;
+            border: 1px solid #ff6600;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .multiplier-controls.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="view-toggle" id="viewToggle">Show Tidal Forces Detail</button>
+        
+        <h1>Earth-Moon System Evolution</h1>
+
+        <div class="mode-indicator" id="modeIndicator">
+            Long-term Evolution View (0-50 billion years)
+        </div>
+
+        <canvas id="canvas" width="800" height="600"></canvas>
+
+        <div class="controls evolution-controls" id="evolutionControls">
+            <div class="control-group">
+                <label for="timeSlider">Time:</label>
+                <input type="range" id="timeSlider" min="0" max="50" step="0.5" value="0">
+                <span id="timeDisplay">0.0 billion years</span>
+            </div>
+            
+            <div class="control-group">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="sunExpansion">
+                    <label for="sunExpansion">Account for sun expansion</label>
+                </div>
+            </div>
+
+            <div id="phaseIndicator" class="phase-indicator normal-phase">
+                Normal Sun Phase
+            </div>
+        </div>
+
+        <div class="tidal-controls" id="tidalControls">
+            <div class="control-row">
+                <button class="play-pause-btn" id="playPauseBtn">Pause</button>
+            </div>
+            
+            <div class="multiplier-controls" id="multiplierControls">
+                <label>Distance Gain Multiplier: </label>
+                <input type="range" id="distanceMultiplier" min="1" max="1000" step="1" value="1">
+                <span id="multiplierDisplay">1x</span>
+                </small>
+            </div>
+            
+            <div class="control-row">
+                <div class="speed-control">
+                    <label>Earth Rotation Speed:</label>
+                    <input type="range" class="speed-slider" id="earthRotationSpeed" min="0.1" max="3" step="0.1" value="0.1">
+                    <span id="earthSpeedDisplay">0.1x</span>
+                </div>
+            </div>
+            
+            <div class="control-row">
+                <div class="speed-control">
+                    <label>Moon Orbit Speed:</label>
+                    <input type="range" class="speed-slider" id="moonOrbitSpeed" min="0.05" max="1" step="0.05" value="0.1">
+                    <span id="moonSpeedDisplay">0.10x</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="force-legend" id="forceLegend">
+            <div class="legend-item">
+                <div class="legend-arrow red"></div>
+                <span>Moon's gravity slows Earth's rotation (pulls on tidal bulge)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-arrow blue"></div>
+                <span>Leading tidal bulge accelerates Moon forward in orbit</span>
+            </div>
+        </div>
+
+        <div class="info-display">
+            <div class="info-box">
+                <div class="info-title">Current Time</div>
+                <div class="info-value" id="currentTime">0.0 billion years</div>
+            </div>
+            <div class="info-box">
+                <div class="info-title">Moon Distance</div>
+                <div class="info-value" id="moonDistance">384,400 km</div>
+            </div>
+            <div class="info-box">
+                <div class="info-title">Status</div>
+                <div class="info-value" id="systemStatus">Active System</div>
+            </div>
+        </div>
+
+        <div class="info-display">
+            <div class="info-box">
+                <div class="info-title">Sun Red Giant Phase</div>
+                <div class="info-value">~5 billion years</div>
+            </div>
+            <div class="info-box">
+                <div class="info-title">Tidal Locking</div>
+                <div class="info-value">~50 billion years (552,000 km)</div>
+            </div>
+            <div class="info-box">
+                <div class="info-title">Timeline Shown</div>
+                <div class="info-value">0-50 billion years</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class EarthMoonSimulation {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.timeSlider = document.getElementById('timeSlider');
+                this.sunExpansionCheckbox = document.getElementById('sunExpansion');
+                this.viewToggle = document.getElementById('viewToggle');
+                this.distanceMultiplier = document.getElementById('distanceMultiplier');
+                
+                // View mode
+                this.isDetailView = false;
+                this.zoomTransition = 0; // 0 = evolution view, 1 = detail view
+                this.transitionSpeed = 0.05;
+                
+                // Evolution view properties
+                this.earthRadius = 25;
+                this.moonRadius = 8;
+                this.currentMoonDistance = 100;
+                this.initialMoonDistance = 100;
+                this.maxMoonDistance = 250;
+                
+                this.sunRadius = 3;
+                this.maxSunRadius = 400;
+                this.sunExpansionTime = 5.0;
+                
+                // Detail view properties
+                this.detailEarthRadius = 80;
+                this.detailMoonRadius = 20;
+                this.detailMoonDistance = 150;
+                this.earthRotationAngle = 0;
+                this.moonOrbitAngle = 0;
+                this.currentBulge = null;
+                
+                // Real Moon orbital data
+                this.realMoonDistance = 384399000; // meters (current average)
+                this.realOrbitalSpeed = 1022; // m/s (mean orbital speed)
+                this.recessionRate = 0.038; // meters per year
+                this.orbitalPeriod = 27.322; // days
+                
+                // Cycle tracking for orbital changes
+                this.completedCycles = 0;
+                this.totalDistanceGained = 0; // total meters gained from cycles
+                this.lastBulgePhase = 0; // track when we complete a full tidal cycle
+                this.cyclePhaseTracker = 0;
+                this.currentPhase = 0; // For debugging
+                this.currentAngularDiff = 0; // For debugging
+
+                // Moon trail system for speed visualization
+                this.moonTrail = [];
+                this.maxTrailLength = 12;
+                
+                // Animation controls
+                this.isPlaying = true;
+                this.earthRotationSpeed = 0.1; // Much slower default for better readability
+                this.moonOrbitSpeed = 0.1; // Much slower to emphasize speed difference
+                
+                this.setupEventListeners();
+                this.updateControlVisibility();
+                this.animate();
+            }
+
+            setupEventListeners() {
+                this.timeSlider.addEventListener('input', () => {
+                    this.updateSimulation();
+                });
+                
+                this.sunExpansionCheckbox.addEventListener('change', () => {
+                    this.updateSimulation();
+                });
+                
+                this.viewToggle.addEventListener('click', () => {
+                    this.toggleView();
+                });
+                                
+                this.distanceMultiplier.addEventListener('input', (e) => {
+                    document.getElementById('multiplierDisplay').textContent = `${e.target.value}x`;
+                });
+                
+                // Tidal controls
+                document.getElementById('playPauseBtn').addEventListener('click', () => {
+                    this.togglePlayPause();
+                });
+                
+                document.getElementById('earthRotationSpeed').addEventListener('input', (e) => {
+                    this.earthRotationSpeed = parseFloat(e.target.value);
+                    document.getElementById('earthSpeedDisplay').textContent = `${this.earthRotationSpeed.toFixed(1)}x`;
+                });
+                
+                document.getElementById('moonOrbitSpeed').addEventListener('input', (e) => {
+                    this.moonOrbitSpeed = parseFloat(e.target.value);
+                    document.getElementById('moonSpeedDisplay').textContent = `${this.moonOrbitSpeed.toFixed(2)}x`;
+                });
+            }
+            
+            toggleView() {
+                this.isDetailView = !this.isDetailView;
+                this.updateControlVisibility();
+                
+                if (this.isDetailView) {
+                    this.viewToggle.textContent = 'Show Long-term Evolution';
+                    document.getElementById('modeIndicator').textContent = 'Tidal Forces Detail View (Mechanism of Energy Transfer)';
+                } else {
+                    this.viewToggle.textContent = 'Show Tidal Forces Detail';
+                    document.getElementById('modeIndicator').textContent = 'Long-term Evolution View (0-50 billion years)';
+                }
+            }
+            
+            updateControlVisibility() {
+                const evolutionControls = document.getElementById('evolutionControls');
+                const tidalControls = document.getElementById('tidalControls');
+                const forceLegend = document.getElementById('forceLegend');
+                const multiplierControls = document.getElementById('multiplierControls');
+                
+                if (this.isDetailView) {
+                    evolutionControls.classList.add('inactive');
+                    tidalControls.classList.add('active');
+                    forceLegend.classList.add('active');
+                    
+                } else {
+                    evolutionControls.classList.remove('inactive');
+                    tidalControls.classList.remove('active');
+                    forceLegend.classList.remove('active');
+                    multiplierControls.classList.remove('active');
+                }
+            }
+            
+            togglePlayPause() {
+                this.isPlaying = !this.isPlaying;
+                document.getElementById('playPauseBtn').textContent = this.isPlaying ? 'Pause' : 'Play';
+            }
+
+            calculateMoonDistance(timeInBillionYears) {
+                const maxTime = 50;
+                
+                if (timeInBillionYears >= maxTime) {
+                    return this.maxMoonDistance;
+                }
+                
+                const progress = timeInBillionYears / maxTime;
+                const distanceIncrease = Math.log(1 + progress * 19) / Math.log(20);
+                
+                return this.initialMoonDistance + (this.maxMoonDistance - this.initialMoonDistance) * distanceIncrease;
+            }
+
+            calculateRealMoonDistance(timeInBillionYears) {
+                const initialDistance = 384400;
+                const maxTime = 50;
+                const maxDistance = 552000;
+                
+                if (timeInBillionYears >= maxTime) {
+                    return maxDistance;
+                }
+                
+                const progress = timeInBillionYears / maxTime;
+                const distanceIncrease = Math.log(1 + progress * 19) / Math.log(20);
+                
+                return initialDistance + (maxDistance - initialDistance) * distanceIncrease;
+            }
+
+            calculateSunRadius(timeInBillionYears) {
+                if (!this.sunExpansionCheckbox.checked) {
+                    return this.sunRadius;
+                }
+                
+                if (timeInBillionYears < this.sunExpansionTime) {
+                    return this.sunRadius;
+                }
+                
+                const expansionTime = timeInBillionYears - this.sunExpansionTime;
+                const expansionDuration = 1.0;
+                
+                if (expansionTime >= expansionDuration) {
+                    return this.canvas.width * 2;
+                }
+                
+                const progress = expansionTime / expansionDuration;
+                const explosiveProgress = Math.pow(progress, 0.3) * Math.pow(Math.sin(progress * Math.PI / 2), 2);
+                
+                return this.sunRadius + (this.canvas.width * 2 - this.sunRadius) * explosiveProgress;
+            }
+
+            updateSimulation() {
+                const timeInBillionYears = parseFloat(this.timeSlider.value);
+                
+                this.currentMoonDistance = this.calculateMoonDistance(timeInBillionYears);
+                
+                document.getElementById('timeDisplay').textContent = `${timeInBillionYears.toFixed(1)} billion years`;
+                document.getElementById('currentTime').textContent = `${timeInBillionYears.toFixed(1)} billion years`;
+                
+                const realDistance = this.calculateRealMoonDistance(timeInBillionYears);
+                document.getElementById('moonDistance').textContent = `${Math.round(realDistance).toLocaleString()} km`;
+                
+                this.updatePhaseIndicator(timeInBillionYears);
+            }
+
+            updatePhaseIndicator(timeInBillionYears) {
+                const phaseIndicator = document.getElementById('phaseIndicator');
+                const systemStatus = document.getElementById('systemStatus');
+                
+                if (this.sunExpansionCheckbox.checked && timeInBillionYears >= this.sunExpansionTime) {
+                    phaseIndicator.className = 'phase-indicator red-giant-phase';
+                    phaseIndicator.textContent = 'Red Giant Phase';
+                    systemStatus.textContent = 'System Destroyed';
+                } else if (timeInBillionYears >= 50) {
+                    phaseIndicator.className = 'phase-indicator tidal-lock-zone';
+                    phaseIndicator.textContent = 'Tidal Locking Achieved';
+                    systemStatus.textContent = 'Tidal Locked';
+                } else if (timeInBillionYears >= 45) {
+                    phaseIndicator.className = 'phase-indicator tidal-lock-zone';
+                    phaseIndicator.textContent = 'Approaching Tidal Lock';
+                    systemStatus.textContent = 'Active System';
+                } else {
+                    phaseIndicator.className = 'phase-indicator normal-phase';
+                    phaseIndicator.textContent = 'Normal Sun Phase';
+                    systemStatus.textContent = 'Active System';
+                }
+            }
+            
+            updateDetailAnimations(deltaTime) {
+                if (!this.isPlaying) return;
+                
+                // Much slower speeds for better educational value - focus on speed difference
+                this.earthRotationAngle += deltaTime * 0.02 * this.earthRotationSpeed;
+                this.moonOrbitAngle += deltaTime * 0.002 * this.moonOrbitSpeed;
+                
+                // Keep angles in reasonable range
+                this.earthRotationAngle = this.earthRotationAngle % (Math.PI * 2);
+                this.moonOrbitAngle = this.moonOrbitAngle % (Math.PI * 2);
+                
+                // Track tidal cycles for orbital evolution
+                this.trackTidalCycles();
+                
+                // Update moon trail for speed visualization
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const moonX = centerX + Math.cos(this.moonOrbitAngle) * this.detailMoonDistance;
+                const moonY = centerY + Math.sin(this.moonOrbitAngle) * this.detailMoonDistance;
+                
+                // Only add to trail if moon has moved enough - INCREASE this distance!
+                let shouldAddTrail = true;
+                if (this.moonTrail.length > 0) {
+                    const lastPos = this.moonTrail[0];
+                    const distance = Math.sqrt((moonX - lastPos.x) ** 2 + (moonY - lastPos.y) ** 2);
+                    shouldAddTrail = distance > 8.0; // Increased from 1.0 to 8.0 pixels
+                }
+                
+                if (shouldAddTrail) {
+                    // Add current position to trail
+                    this.moonTrail.unshift({ x: moonX, y: moonY, angle: this.moonOrbitAngle });
+                    
+                    // Limit trail length
+                    if (this.moonTrail.length > this.maxTrailLength) {
+                        this.moonTrail.pop();
+                    }
+                }
+            }
+            
+            trackTidalCycles() {
+                // Calculate the current tidal phase based on bulge formation
+                const bulgeAngle = this.earthRotationAngle;
+                let angularDiff = bulgeAngle - this.moonOrbitAngle;
+                
+                // Normalize to [-PI, PI]
+                while (angularDiff > Math.PI) angularDiff -= 2 * Math.PI;
+                while (angularDiff < -Math.PI) angularDiff += 2 * Math.PI;
+                
+                // Store for debugging
+                this.currentAngularDiff = angularDiff;
+                
+                // Convert to phase (0-1) where 0.5 is peak bulge effectiveness
+                const bulgeStartAngle = -14 * Math.PI / 180;
+                const bulgeEndAngle = 42 * Math.PI / 180;
+                const totalRange = bulgeEndAngle - bulgeStartAngle;
+                
+                let currentPhase = 0;
+                if (angularDiff >= bulgeStartAngle && angularDiff <= bulgeEndAngle) {
+                    currentPhase = (angularDiff - bulgeStartAngle) / totalRange;
+                }
+                
+                this.currentPhase = currentPhase;
+                
+                // Detect cycle completion with reliable logic
+                if (this.lastBulgePhase > 0.8 && currentPhase < 0.2 && this.lastBulgePhase !== 0) {
+                    this.completedCycles++;
+                    
+                    // Get multiplier from slider (for debugging purposes)
+                    const multiplier = parseFloat(this.distanceMultiplier.value);
+                    
+                    // Calculate orbital change per cycle
+                    // The Moon gains ~3.83 cm per year
+                    // With 27.3 day orbital period, that's ~13.34 orbits per year
+                    // So per orbit, Moon gains: 3.83 cm / 13.34 = ~0.287 cm = 2.87 mm
+                    // But tidal bulge cycles happen much more frequently than orbits
+                    // Earth rotates ~27.3 times per lunar orbit, so per tidal cycle:
+                    // 2.87 mm / 27.3 = ~0.105 mm per tidal bulge cycle
+                    
+                    const baseDistanceGainPerCycle = 0.000105; // meters (0.105 mm)
+                    const distanceGainPerCycle = baseDistanceGainPerCycle * multiplier;
+                    this.totalDistanceGained += distanceGainPerCycle;
+                    
+                    // Update current distance and calculate new orbital speed
+                    this.realMoonDistance += distanceGainPerCycle;
+                    
+                    // Orbital speed decreases as distance increases (Kepler's laws)
+                    // v = sqrt(GM/r), so speed is inversely proportional to sqrt(distance)
+                    const distanceRatio = this.realMoonDistance / 384399000;
+                    this.realOrbitalSpeed = 1022 / Math.sqrt(distanceRatio);
+                }
+                
+                this.lastBulgePhase = currentPhase;
+            }
+
+            drawMoonTrail(centerX, centerY) {
+                if (this.moonTrail.length < 2) return;
+                
+                const glowIntensity = this.currentBulge ? this.currentBulge.intensity : 0;
+                const baseTrailLength = 6; // Reduced for more distinct segments
+                const maxTrailLength = 10; // Maximum trail segments when accelerating
+                const trailLength = Math.floor(baseTrailLength + (maxTrailLength - baseTrailLength) * glowIntensity);
+                
+                // Draw trail as individual segments with gaps
+                for (let i = 0; i < Math.min(this.moonTrail.length, trailLength); i++) {
+                    const pos = this.moonTrail[i];
+                    
+                    // Calculate opacity and size based on position in trail and tidal force
+                    const trailProgress = i / trailLength;
+                    const baseOpacity = (1 - trailProgress) * 0.5; // Base trail visibility
+                    const forceBoost = glowIntensity * 0.7 * (1 - trailProgress * 0.4); // Boost when forces active
+                    const opacity = Math.min(0.9, baseOpacity + forceBoost);
+                    
+                    const baseSize = (1 - trailProgress) * 3 + 2; // Base segment size (2-5px)
+                    const forceSize = glowIntensity * 4 * (1 - trailProgress * 0.3); // Larger when forces active
+                    const segmentSize = baseSize + forceSize;
+                    
+                    if (opacity > 0.1) {
+                        // Draw main segment as a circle
+                        this.ctx.fillStyle = `rgba(68, 170, 255, ${opacity})`;
+                        this.ctx.beginPath();
+                        this.ctx.arc(pos.x, pos.y, segmentSize, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        
+                        // Add brighter core when forces are active
+                        if (glowIntensity > 0.3) {
+                            this.ctx.fillStyle = `rgba(170, 220, 255, ${opacity * 0.7})`;
+                            this.ctx.beginPath();
+                            this.ctx.arc(pos.x, pos.y, segmentSize * 0.6, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
+                        
+                        // Add outer glow for strongest segments
+                        if (i < 3 && glowIntensity > 0.5) {
+                            this.ctx.fillStyle = `rgba(100, 200, 255, ${opacity * 0.3})`;
+                            this.ctx.beginPath();
+                            this.ctx.arc(pos.x, pos.y, segmentSize * 1.5, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
+                    }
+                }
+            }
+
+            draw() {
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                
+                this.ctx.fillStyle = '#000';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.drawStars();
+                
+                if (this.isDetailView) {
+                    this.drawDetailView(centerX, centerY);
+                } else {
+                    this.drawEvolutionView(centerX, centerY);
+                }
+            }
+            
+            drawEvolutionView(centerX, centerY) {
+                const timeInBillionYears = parseFloat(this.timeSlider.value);
+                const currentSunRadius = this.calculateSunRadius(timeInBillionYears);
+                const sunX = 50;
+                const sunY = 50;
+                
+                if (this.sunExpansionCheckbox.checked && timeInBillionYears >= this.sunExpansionTime) {
+                    const gradient = this.ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, currentSunRadius);
+                    gradient.addColorStop(0, '#ff6666');
+                    gradient.addColorStop(0.3, '#ff4444');
+                    gradient.addColorStop(0.7, '#aa2222');
+                    gradient.addColorStop(1, '#660000');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(sunX, sunY, currentSunRadius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.font = 'bold 16px Arial';
+                    this.ctx.textAlign = 'left';
+                    this.ctx.fillText('RED GIANT', sunX + 20, sunY - 20);
+                } else {
+                    this.ctx.fillStyle = '#ffff88';
+                    this.ctx.beginPath();
+                    this.ctx.arc(sunX, sunY, Math.max(currentSunRadius, 8), 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.font = '10px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('Sun', sunX, sunY + 20);
+                }
+                
+                const distanceToEarthMoon = Math.sqrt((centerX - sunX) ** 2 + (centerY - sunY) ** 2);
+                const systemEngulfed = this.sunExpansionCheckbox.checked && 
+                                     timeInBillionYears >= this.sunExpansionTime && 
+                                     currentSunRadius > distanceToEarthMoon;
+                
+                if (!systemEngulfed) {
+                    const earthGradient = this.ctx.createRadialGradient(centerX - 5, centerY - 5, 0, centerX, centerY, this.earthRadius);
+                    earthGradient.addColorStop(0, '#66aaff');
+                    earthGradient.addColorStop(1, '#2266aa');
+                    
+                    this.ctx.fillStyle = earthGradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX, centerY, this.earthRadius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('Earth', centerX, centerY + this.earthRadius + 15);
+                    
+                    this.ctx.strokeStyle = '#333';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.setLineDash([5, 5]);
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX, centerY, this.currentMoonDistance, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                    this.ctx.setLineDash([]);
+                    
+                    const moonAngle = (Date.now() * 0.001) % (Math.PI * 2);
+                    const moonX = centerX + Math.cos(moonAngle) * this.currentMoonDistance;
+                    const moonY = centerY + Math.sin(moonAngle) * this.currentMoonDistance;
+                    
+                    const moonGradient = this.ctx.createRadialGradient(moonX - 2, moonY - 2, 0, moonX, moonY, this.moonRadius);
+                    moonGradient.addColorStop(0, '#cccccc');
+                    moonGradient.addColorStop(1, '#666666');
+                    
+                    this.ctx.fillStyle = moonGradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(moonX, moonY, this.moonRadius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.font = '10px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('Moon', moonX, moonY + this.moonRadius + 12);
+                    
+                    this.ctx.strokeStyle = '#666';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(centerX, centerY);
+                    this.ctx.lineTo(moonX, moonY);
+                    this.ctx.stroke();
+                }
+                
+                if (timeInBillionYears >= 45 && timeInBillionYears < 50) {
+                    this.ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                    this.ctx.font = 'bold 14px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('Approaching Tidal Lock Zone', centerX, 30);
+                } else if (timeInBillionYears >= 50) {
+                    this.ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+                    this.ctx.font = 'bold 14px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('Tidal Locking: 47-day orbital period, 552,000 km distance', centerX, 30);
+                }
+            }
+            
+
+            drawDetailView(centerX, centerY) {
+                // Display current Moon distance at top of canvas with high precision
+                this.ctx.fillStyle = '#4a9eff';
+                this.ctx.font = 'bold 16px Arial';
+                this.ctx.textAlign = 'center';
+                
+                const distanceInKm = this.realMoonDistance / 1000;
+                const integerPart = Math.floor(distanceInKm).toLocaleString('en-US');
+                const decimalPart = (distanceInKm % 1).toFixed(9).substring(1); // Get .xxxxxx part
+                const formattedDistance = integerPart + decimalPart + ' km';
+                
+                this.ctx.fillText(`Current Moon Distance: ${formattedDistance}`, centerX, 30);
+                
+                // Draw Earth (solid land)
+                const earthGradient = this.ctx.createRadialGradient(centerX - 15, centerY - 15, 0, centerX, centerY, this.detailEarthRadius - 8);
+                earthGradient.addColorStop(0, '#88bbff');
+                earthGradient.addColorStop(0.7, '#4488cc');
+                earthGradient.addColorStop(1, '#2266aa');
+
+                this.ctx.fillStyle = earthGradient;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, this.detailEarthRadius - 8, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                // === IMPROVED TIDAL BULGE CALCULATIONS ===
+                const bulgeAngle = this.earthRotationAngle; // tied to Earth rotation
+
+                // Determine how far ahead the bulge is from Moon (in the direction of Earth's rotation)
+                let angularDiff = bulgeAngle - this.moonOrbitAngle;
+
+                // Normalize to [-PI, PI]
+                while (angularDiff > Math.PI) angularDiff -= 2 * Math.PI;
+                while (angularDiff < -Math.PI) angularDiff += 2 * Math.PI;
+
+                // Bulge formation cycle: starts at -14°, peaks at 14°, ends at 42° (relative to moon)
+                const bulgeStartAngle = -14 * Math.PI / 180; // Start forming 14° behind moon
+                const bulgePeakAngle = 14 * Math.PI / 180; // Peak at 14° ahead
+                const bulgeEndAngle = 42 * Math.PI / 180; // End at 42° ahead (total 56° range)
+                
+                let bulgeFactor = 0;
+                
+                if (angularDiff >= bulgeStartAngle && angularDiff <= bulgeEndAngle) {
+                    if (angularDiff <= bulgePeakAngle) {
+                        // Growing phase: smooth curve from 0 to 1 (28° range)
+                        const progress = (angularDiff - bulgeStartAngle) / (bulgePeakAngle - bulgeStartAngle);
+                        bulgeFactor = Math.pow(Math.sin(progress * Math.PI / 2), 0.7); // Slower initial growth
+                    } else {
+                        // Shrinking phase: much more gradual decay (28° range)
+                        const progress = (angularDiff - bulgePeakAngle) / (bulgeEndAngle - bulgePeakAngle);
+                        
+                        // Use a combination of curves for very smooth decay
+                        const baseDecay = Math.cos(progress * Math.PI / 2);
+                        const gentleDecay = Math.exp(-progress * 2.5); // Exponential decay for smooth tail
+                        const smoothFactor = Math.pow(1 - progress, 1.5); // Power curve for gradual end
+                        
+                        // Blend the curves for maximum smoothness
+                        bulgeFactor = baseDecay * 0.4 + gentleDecay * 0.3 + smoothFactor * 0.3;
+                        bulgeFactor = Math.pow(bulgeFactor, 0.8); // Final smoothing
+                    }
+                }
+
+                // Ocean layer thickness varies inversely with bulge height at the bulge location
+                const baseOceanThickness = 8;
+                const minOceanThickness = 2;
+                
+                // Calculate ocean thickness based on bulge factor
+                const oceanThickness = minOceanThickness + (baseOceanThickness - minOceanThickness) * (1 - bulgeFactor * 0.7);
+                
+                // Ocean color (light blue)
+                const oceanColor = '#66ccff';
+                
+                // Draw ocean layer with varying thickness
+                this.ctx.fillStyle = oceanColor;
+                this.ctx.globalAlpha = 0.7;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, this.detailEarthRadius - 8 + oceanThickness, 0, Math.PI * 2);
+                this.ctx.arc(centerX, centerY, this.detailEarthRadius - 8, 0, Math.PI * 2, true);
+                this.ctx.fill();
+                this.ctx.globalAlpha = 1.0;
+
+                // Rotation indicator line pointing to current bulge location
+                this.ctx.strokeStyle = '#ffffff';
+                this.ctx.lineWidth = 2;
+                
+                // Draw single line pointing to bulge location
+                const rotX = centerX + Math.cos(bulgeAngle) * (this.detailEarthRadius - 20);
+                const rotY = centerY + Math.sin(bulgeAngle) * (this.detailEarthRadius - 20);
+                this.ctx.beginPath();
+                this.ctx.moveTo(centerX, centerY);
+                this.ctx.lineTo(rotX, rotY);
+                this.ctx.stroke();
+                
+                // Draw small circle at center
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                // === VISIBLE TIDAL BULGE (only when bulgeFactor > 0) ===
+                if (bulgeFactor > 0) {
+                    const bulgeHeight = 8 + bulgeFactor * 30; // Height of the bulge extending outward
+                    const bulgeWidth = 35; // Angular width of the bulge base
+                    
+                    this.ctx.save();
+                    this.ctx.translate(centerX, centerY);
+                    this.ctx.rotate(bulgeAngle);
+                    
+                    // Draw bell-shaped bulge extending outward from ocean surface
+                    this.ctx.fillStyle = '#88ddff'; // Slightly brighter blue for the bulge
+                    this.ctx.globalAlpha = 0.9; // No fading, always visible when present
+                    this.ctx.beginPath();
+                    
+                    // Create bell curve points extending radially outward
+                    const numPoints = 30;
+                    const baseRadius = this.detailEarthRadius - 8 + oceanThickness; // Base sits on current ocean surface
+                    const angularSpan = bulgeWidth * Math.PI / 180; // Convert to radians
+                    
+                    // Create the outer bulge curve
+                    for (let i = 0; i <= numPoints; i++) {
+                        const t = i / numPoints;
+                        const angle = -angularSpan/2 + t * angularSpan; // Angle relative to bulge center
+                        const distFromCenter = Math.abs(angle) / (angularSpan/2);
+                        
+                        // Bell curve using smooth polynomial for natural water shape
+                        const heightFactor = Math.pow(Math.cos(distFromCenter * Math.PI / 2), 2);
+                        const radialExtension = bulgeHeight * heightFactor;
+                        const radius = baseRadius + radialExtension;
+                        
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius;
+                        
+                        if (i === 0) {
+                            this.ctx.moveTo(x, y);
+                        } else {
+                            this.ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    // Close the shape back to ocean surface along the base
+                    for (let i = numPoints; i >= 0; i--) {
+                        const t = i / numPoints;
+                        const angle = -angularSpan/2 + t * angularSpan;
+                        const x = Math.cos(angle) * baseRadius;
+                        const y = Math.sin(angle) * baseRadius;
+                        this.ctx.lineTo(x, y);
+                    }
+                    
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    
+                    // Add inner highlight for better definition
+                    this.ctx.fillStyle = '#aaeeff'; // Even brighter highlight
+                    this.ctx.globalAlpha = 0.6;
+                    this.ctx.beginPath();
+                    const peakHeight = bulgeHeight * 0.6;
+                    const peakWidth = angularSpan * 0.5;
+                    
+                    for (let i = 0; i <= 15; i++) {
+                        const t = i / 15;
+                        const angle = -peakWidth/2 + t * peakWidth;
+                        const distFromCenter = Math.abs(angle) / (peakWidth/2);
+                        const heightFactor = Math.pow(Math.cos(distFromCenter * Math.PI / 2), 2);
+                        const radialExtension = peakHeight * heightFactor;
+                        const radius = baseRadius + radialExtension;
+                        
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius;
+                        
+                        if (i === 0) {
+                            this.ctx.moveTo(x, y);
+                        } else {
+                            this.ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    // Close highlight shape back to base
+                    for (let i = 15; i >= 0; i--) {
+                        const t = i / 15;
+                        const angle = -peakWidth/2 + t * peakWidth;
+                        const x = Math.cos(angle) * baseRadius;
+                        const y = Math.sin(angle) * baseRadius;
+                        this.ctx.lineTo(x, y);
+                    }
+                    
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    
+                    this.ctx.globalAlpha = 1.0;
+                    this.ctx.restore();
+                }
+
+                const bulgeX = centerX + Math.cos(bulgeAngle) * this.detailEarthRadius;
+                const bulgeY = centerY + Math.sin(bulgeAngle) * this.detailEarthRadius;
+
+                this.currentBulge = {
+                    angle: bulgeAngle,
+                    intensity: bulgeFactor,
+                    x: bulgeX,
+                    y: bulgeY
+                };
+
+                // === MOON ORBITAL SPEED STREAKS ===
+                this.drawMoonTrail(centerX, centerY);
+
+                // === MOON ===
+                const moonX = centerX + Math.cos(this.moonOrbitAngle) * this.detailMoonDistance;
+                const moonY = centerY + Math.sin(this.moonOrbitAngle) * this.detailMoonDistance;
+
+                // Earth-Moon connector
+                this.ctx.strokeStyle = '#666';
+                this.ctx.lineWidth = 1;
+                this.ctx.setLineDash([2, 2]);
+                this.ctx.beginPath();
+                this.ctx.moveTo(centerX, centerY);
+                this.ctx.lineTo(moonX, moonY);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+
+                // Moon glow effect based on tidal force strength
+                const glowIntensity = this.currentBulge ? this.currentBulge.intensity : 0;
+                const pulsePhase = Date.now() * 0.005; // Slow pulse
+                const pulseFactor = 0.7 + 0.3 * Math.sin(pulsePhase);
+
+                if (glowIntensity > 0) {
+                    // Outer glow
+                    const glowRadius = this.detailMoonRadius + 8 + glowIntensity * 15 * pulseFactor;
+                    const glowGradient = this.ctx.createRadialGradient(moonX, moonY, this.detailMoonRadius, moonX, moonY, glowRadius);
+                    glowGradient.addColorStop(0, `rgba(68, 170, 255, ${glowIntensity * 0.6 * pulseFactor})`);
+                    glowGradient.addColorStop(0.5, `rgba(68, 170, 255, ${glowIntensity * 0.3 * pulseFactor})`);
+                    glowGradient.addColorStop(1, 'rgba(68, 170, 255, 0)');
+                    
+                    this.ctx.fillStyle = glowGradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(moonX, moonY, glowRadius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Inner bright glow
+                    const innerGlowRadius = this.detailMoonRadius + 3 + glowIntensity * 5 * pulseFactor;
+                    const innerGradient = this.ctx.createRadialGradient(moonX, moonY, this.detailMoonRadius - 2, moonX, moonY, innerGlowRadius);
+                    innerGradient.addColorStop(0, `rgba(170, 220, 255, ${glowIntensity * 0.4 * pulseFactor})`);
+                    innerGradient.addColorStop(1, 'rgba(170, 220, 255, 0)');
+                    
+                    this.ctx.fillStyle = innerGradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(moonX, moonY, innerGlowRadius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+
+                const moonGradient = this.ctx.createRadialGradient(moonX - 5, moonY - 5, 0, moonX, moonY, this.detailMoonRadius);
+                moonGradient.addColorStop(0, '#eeeeee');
+                moonGradient.addColorStop(1, '#888888');
+
+                this.ctx.fillStyle = moonGradient;
+                this.ctx.beginPath();
+                this.ctx.arc(moonX, moonY, this.detailMoonRadius, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                // Orbit path
+                this.ctx.strokeStyle = '#444';
+                this.ctx.lineWidth = 1;
+                this.ctx.setLineDash([3, 3]);
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, this.detailMoonDistance, 0, Math.PI * 2);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+
+                // === FORCE ARROWS ===
+                this.drawForceArrows(centerX, centerY, moonX, moonY);
+
+                // === LABELS ===
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.font = 'bold 14px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('Earth', centerX, centerY + this.detailEarthRadius + 25);
+                this.ctx.fillText('Moon', moonX, moonY + this.detailMoonRadius + 20);
+            }
+            
+            drawForceArrows(centerX, centerY, moonX, moonY) {
+                if (!this.currentBulge || this.currentBulge.intensity === 0) return;
+
+                const arrowOpacity = this.currentBulge.intensity;
+
+                // Blue arrow: Bulge accelerates Moon forward in orbit
+                const forwardMoonX = centerX + Math.cos(this.moonOrbitAngle + 0.12) * this.detailMoonDistance;
+                const forwardMoonY = centerY + Math.sin(this.moonOrbitAngle + 0.12) * this.detailMoonDistance;
+
+                this.drawArrow(
+                    this.currentBulge.x, this.currentBulge.y,
+                    forwardMoonX, forwardMoonY,
+                    '#44aaff', 'Bulge accelerates Moon',
+                    arrowOpacity
+                );
+
+                // Red arrow: Moon pulls back on tidal bulge
+                this.drawArrow(
+                    moonX, moonY,
+                    this.currentBulge.x, this.currentBulge.y,
+                    '#ff4444', 'Moon slows Earth rotation',
+                    arrowOpacity
+                );
+            }
+            
+            drawArrow(startX, startY, endX, endY, color, label, opacity = 1.0) {
+                const angle = Math.atan2(endY - startY, endX - startX);
+                const length = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
+                
+                // Shorten arrow to not overlap with objects
+                const shortenedLength = Math.max(20, length - 40);
+                const actualEndX = startX + Math.cos(angle) * shortenedLength;
+                const actualEndY = startY + Math.sin(angle) * shortenedLength;
+                
+                this.ctx.globalAlpha = opacity;
+                this.ctx.strokeStyle = color;
+                this.ctx.fillStyle = color;
+                this.ctx.lineWidth = 3 * opacity;
+                
+                // Arrow line
+                this.ctx.beginPath();
+                this.ctx.moveTo(startX + Math.cos(angle) * 25, startY + Math.sin(angle) * 25);
+                this.ctx.lineTo(actualEndX, actualEndY);
+                this.ctx.stroke();
+                
+                // Arrowhead
+                const headLength = 12;
+                this.ctx.beginPath();
+                this.ctx.moveTo(actualEndX, actualEndY);
+                this.ctx.lineTo(
+                    actualEndX - headLength * Math.cos(angle - Math.PI / 6),
+                    actualEndY - headLength * Math.sin(angle - Math.PI / 6)
+                );
+                this.ctx.lineTo(
+                    actualEndX - headLength * Math.cos(angle + Math.PI / 6),
+                    actualEndY - headLength * Math.sin(angle + Math.PI / 6)
+                );
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                this.ctx.globalAlpha = 1.0; // Reset opacity
+            }
+
+            drawStars() {
+                if (!this.stars) {
+                    this.generateStars();
+                }
+                
+                for (const star of this.stars) {
+                    this.ctx.fillStyle = star.color;
+                    this.ctx.globalAlpha = star.opacity;
+                    this.ctx.beginPath();
+                    this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                this.ctx.globalAlpha = 1.0;
+            }
+
+            generateStars() {
+                this.stars = [];
+                
+                const mainStarCount = 120;
+                for (let i = 0; i < mainStarCount; i++) {
+                    this.stars.push(this.createRandomStar());
+                }
+                
+                const clusterCount = 4;
+                for (let c = 0; c < clusterCount; c++) {
+                    const clusterX = Math.random() * this.canvas.width;
+                    const clusterY = Math.random() * this.canvas.height;
+                    const clusterSize = 30 + Math.random() * 50;
+                    const starsInCluster = 8 + Math.random() * 15;
+                    
+                    for (let s = 0; s < starsInCluster; s++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = this.normalRandom() * clusterSize * 0.5;
+                        
+                        const x = clusterX + Math.cos(angle) * distance;
+                        const y = clusterY + Math.sin(angle) * distance;
+                        
+                        if (x >= 0 && x <= this.canvas.width && y >= 0 && y <= this.canvas.height) {
+                            this.stars.push(this.createStar(x, y, true));
+                        }
+                    }
+                }
+            }
+            
+            createRandomStar() {
+                const x = Math.random() * this.canvas.width;
+                const y = Math.random() * this.canvas.height;
+                return this.createStar(x, y, false);
+            }
+            
+            createStar(x, y, inCluster = false) {
+                const rand = Math.random();
+                let size;
+                if (rand < 0.7) size = 0.5 + Math.random() * 0.8;
+                else if (rand < 0.9) size = 1.0 + Math.random() * 1.0;
+                else size = 1.5 + Math.random() * 1.0;
+                
+                const baseOpacity = inCluster ? 0.4 : 0.3;
+                const opacity = baseOpacity + Math.random() * 0.5;
+                
+                let color;
+                const colorRand = Math.random();
+                if (colorRand < 0.6) color = '#ffffff';
+                else if (colorRand < 0.8) color = '#cce6ff';
+                else if (colorRand < 0.92) color = '#ffffcc';
+                else if (colorRand < 0.97) color = '#ffddaa';
+                else color = '#ffcccc';
+                
+                return { x, y, size, opacity, color };
+            }
+            
+            normalRandom() {
+                let u = 0, v = 0;
+                while(u === 0) u = Math.random();
+                while(v === 0) v = Math.random();
+                return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            }
+
+            animate() {
+                if (this.isDetailView) {
+                    this.updateDetailAnimations(16); // Assuming ~60fps
+                }
+                
+                this.draw();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        window.addEventListener('load', () => {
+            new EarthMoonSimulation();
+        });
+    </script>
+</body>
+</html>
